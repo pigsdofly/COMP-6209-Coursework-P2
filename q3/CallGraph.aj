@@ -18,6 +18,25 @@ public aspect CallGraph {
     pointcut graph_point(): call(public int *(int)) && within(q2..*);
     //pointcut graph_point(): execution(public int *(int)) && within(q1..*);
 
+    int around(int i): graph_point() && args(i) {
+        try {
+            int result = proceed(i);
+                
+            nodes.add(thisJoinPoint.getSignature());  
+            String jp_str = thisJoinPoint.getSignature().toString();
+            if(!node_keys.containsKey(jp_str)) {
+                node_keys.put(jp_str, new HashMap());
+            } 
+            
+            addToMap(jp_str, Integer.valueOf(i), "arg");
+            addToMap(jp_str, Integer.valueOf(result), "ret");
+            
+            return result;
+        } catch(Exception e) {
+            return -1;
+        }
+    }
+/*
     after(int i) returning(int j): graph_point() && args(i) {
         nodes.add(thisJoinPoint.getSignature());  
         String jp_str = thisJoinPoint.getSignature().toString();
@@ -27,31 +46,15 @@ public aspect CallGraph {
         
         addToMap(jp_str, Integer.valueOf(i), "arg");
         addToMap(jp_str, Integer.valueOf(j), "ret");
-       /* System.out.println("Arg: ");
+        System.out.println("Arg: ");
         System.out.println(i);
         System.out.println(" Returning: ");
-        System.out.println(j); */
+        System.out.println(j); 
     };
         
-
-    before(): graph_point() && withincode(public int *(int)) {
-        String edge_string = "";
-        
-        edge_string = edge_string.concat(nodes.get(nodes.size()-2).toString()).concat("->").concat(nodes.get(nodes.size()-1).toString());
-        edges.add(edge_string);
-    };
-    
-    after() throwing (Exception e): graph_point() && withincode(public int * (int)) {
-        System.out.println("Exception occured, removing latest edge");
-        edges.remove(edges.size()-1);
-    }
-
+*/
     after(): execution(public static void main(..)) {
-        System.out.println(nodes);
-        System.out.println(edges);
         System.out.println(node_keys);
-        writeCsv(node_file, nodes);
-        writeCsv(edge_file, edges);
     };
 
     //The histogram uses a structure of nested hashmaps, with the top layer containing a hashmap for each int value,

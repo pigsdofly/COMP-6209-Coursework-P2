@@ -27,7 +27,8 @@ public aspect CallGraph {
             edge_string = edge_string.concat(nodes.get(nodes.size()-2).toString()).concat("->").concat(nodes.get(nodes.size()-1).toString());
 
             edges.add(edge_string);
-            result = proceed();
+
+            int result = proceed();
             return result;
 
         } catch(Exception e) {
