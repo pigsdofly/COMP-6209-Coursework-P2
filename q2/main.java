@@ -7,7 +7,7 @@ class main {
         a.foo(3);
 
         B b = new B();
-        b.foo(3);
         b.foo(1);
+        b.foo(3);
     }
 }

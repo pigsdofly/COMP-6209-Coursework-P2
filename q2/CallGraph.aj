@@ -19,17 +19,24 @@ public aspect CallGraph {
         nodes.add(thisJoinPoint.getSignature());  
     };
         
-    before(): graph_point() && withincode(public int *(int)) {
-        String edge_string = "";
-        
-        edge_string = edge_string.concat(nodes.get(nodes.size()-2).toString()).concat("->").concat(nodes.get(nodes.size()-1).toString());
-        edges.add(edge_string);
+    int around(): graph_point() && withincode(public int *(int)) {
+        try {
+            // Adding new entries to edges must be done before function execution
+            String edge_string = "";
+                
+            edge_string = edge_string.concat(nodes.get(nodes.size()-2).toString()).concat("->").concat(nodes.get(nodes.size()-1).toString());
+
+            edges.add(edge_string);
+            result = proceed();
+            return result;
+
+        } catch(Exception e) {
+            //If an exception happens, remove the bad edge from edges
+            System.out.println("An exception occurred");
+            edges.remove(edges.size()-1);
+            return -1;
+        }   
     };
-    
-    after() throwing (Exception e): graph_point() && withincode(public int * (int)) {
-        System.out.println("Exception occured, removing latest edge");
-        edges.remove(edges.size()-1);
-    }
 
     after(): execution(public static void main(..)) {
         System.out.println(nodes);
