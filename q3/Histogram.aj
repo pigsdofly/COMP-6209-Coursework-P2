@@ -6,14 +6,10 @@ import java.io.PrintWriter;
 import java.io.IOException;
 import java.lang.Exception;
 
-public aspect CallGraph {
-    ArrayList nodes = new ArrayList();
-    ArrayList edges = new ArrayList();
+public aspect Histogram {
     // Structure of nested hash maps for histogram
     HashMap node_keys = new HashMap();
     
-    String node_file = "q1-nodes.csv";
-    String edge_file = "q1-edges.csv";
     
     pointcut graph_point(): call(public int *(int)) && within(q2..*);
     //pointcut graph_point(): execution(public int *(int)) && within(q1..*);
@@ -36,23 +32,7 @@ public aspect CallGraph {
             return -1;
         }
     }
-/*
-    after(int i) returning(int j): graph_point() && args(i) {
-        nodes.add(thisJoinPoint.getSignature());  
-        String jp_str = thisJoinPoint.getSignature().toString();
-        if(!node_keys.containsKey(jp_str)) {
-            node_keys.put(jp_str, new HashMap());
-        } 
-        
-        addToMap(jp_str, Integer.valueOf(i), "arg");
-        addToMap(jp_str, Integer.valueOf(j), "ret");
-        System.out.println("Arg: ");
-        System.out.println(i);
-        System.out.println(" Returning: ");
-        System.out.println(j); 
-    };
-        
-*/
+
     after(): execution(public static void main(..)) {
         System.out.println(node_keys);
     };
