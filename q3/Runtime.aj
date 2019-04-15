@@ -44,10 +44,10 @@ public aspect Runtime {
     }
 
     after(): execution(public static void main(..)) {
-        Iterator timesIter = times.entrySet().iterator();
+        Iterator time_iter = times.entrySet().iterator();
         String csv_output = "Method, Mean (milliseconds), Std. Dev (milliseconds),\n";
-        while(timesIter.hasNext()) {
-            Map.Entry entry = (Map.Entry) timesIter.next();
+        while(time_iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) time_iter.next();
 
             double mean = averageTimes((ArrayList) entry.getValue());
             double std_dev = stdDevTimes((ArrayList) entry.getValue(), mean);
@@ -55,7 +55,7 @@ public aspect Runtime {
             // Converts from nanoseconds to milliseconds by dividing by 1000000
             String formatted_string = String.format("%s, %f, %f,\n", (String) entry.getKey(), (mean / 1000000), (std_dev / 1000000));
             csv_output += formatted_string;
-            timesIter.remove();
+            time_iter.remove();
         }
 
         try {

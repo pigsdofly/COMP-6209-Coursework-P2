@@ -51,10 +51,10 @@ public aspect Failure {
     after(): execution(public static void main(..)) {
         double fail_rate;
         
-        Iterator failuresIter = failures.entrySet().iterator();
+        Iterator failure_iter = failures.entrySet().iterator();
         String csv_output = "Method, Failure Rate (Percent),\n";
-        while (failuresIter.hasNext()) {
-            Map.Entry entry = (Map.Entry) failuresIter.next();
+        while (failure_iter.hasNext()) {
+            Map.Entry entry = (Map.Entry) failure_iter.next();
             String signature = (String) entry.getKey();
             int fail_val = getIntFromObject(entry.getValue());
             fail_rate = 0.0;
@@ -64,7 +64,7 @@ public aspect Failure {
             }
             String formatted_string = String.format("%s, %f,\n", signature, fail_rate);
             csv_output += formatted_string;
-            failuresIter.remove();
+            failure_iter.remove();
         }
         
         try {
