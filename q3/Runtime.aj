@@ -3,7 +3,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Timer;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -45,15 +44,16 @@ public aspect Runtime {
     }
 
     after(): execution(public static void main(..)) {
-        System.out.println(times.get("int q2.A.foo(int)"));
         Iterator timesIter = times.entrySet().iterator();
-        String csv_output = "Method, Mean, St Dev,\n";
+        String csv_output = "Method, Mean (milliseconds), Std. Dev (milliseconds),\n";
         while(timesIter.hasNext()) {
             Map.Entry entry = (Map.Entry) timesIter.next();
-            System.out.println(entry.getKey() + " " + entry.getValue());
+
             double mean = averageTimes((ArrayList) entry.getValue());
             double std_dev = stdDevTimes((ArrayList) entry.getValue(), mean);
-            String formatted_string = String.format("%s, %f, %f,\n", (String) entry.getKey(), mean, std_dev);
+
+            // Converts from nanoseconds to milliseconds by dividing by 1000000
+            String formatted_string = String.format("%s, %f, %f,\n", (String) entry.getKey(), (mean / 1000000), (std_dev / 1000000));
             csv_output += formatted_string;
             timesIter.remove();
         }
@@ -63,8 +63,9 @@ public aspect Runtime {
             PrintWriter node_print = new PrintWriter(node_out);
             node_print.printf(csv_output);
             node_print.close();
+            System.out.println("Program runtimes written to runtimes.csv");
         } catch(IOException e) {
-            System.out.println("IO error");        
+            System.out.println("IO error (runtimes.csv)");        
         }
         
     };

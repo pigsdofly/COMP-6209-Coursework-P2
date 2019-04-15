@@ -1,9 +1,13 @@
 package q2;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
+
 import java.lang.Exception;
 
 public aspect Failure {
@@ -17,15 +21,16 @@ public aspect Failure {
     //pointcut graph_point(): execution(public int *(int)) && within(q1..*);
 
     int around(int i): graph_point() && args(i) {
+        String joinpoint_name = thisJoinPoint.getSignature().toString();
         try {
             
-            if(!attempts.containsKey(thisJoinPoint.getSignature())) {
-                attempts.put(thisJoinPoint.getSignature(), Integer.valueOf(1));
-                failures.put(thisJoinPoint.getSignature(), Integer.valueOf(0));
+            if(!attempts.containsKey(joinpoint_name)) {
+                attempts.put(joinpoint_name, 1);
+                failures.put(joinpoint_name, 0);
             }
             else {
-                Integer attempt_count = (Integer) attempts.get(thisJoinPoint.getSignature());
-                attempts.replace(thisJoinPoint.getSignature(), Integer.valueOf(attempt_count.intValue() + 1));
+                int attempt_count = getIntFromObject(attempts.get(joinpoint_name));
+                attempts.replace(joinpoint_name, attempt_count + 1);
             }
             
             int result = proceed(i);
@@ -33,16 +38,45 @@ public aspect Failure {
             
             return result;
         } catch(Exception e) {
-            Integer fail_count = (Integer) failures.get(thisJoinPoint.getSignature());
-            failures.replace(thisJoinPoint.getSignature(), Integer.valueOf(fail_count.intValue() + 1));
+            int fail_count = getIntFromObject(failures.get(joinpoint_name));
+            failures.replace(joinpoint_name, fail_count + 1);
             return -1;
         }
     }
+    
+    int getIntFromObject(Object object) {
+        return ((Integer) object).intValue();
+    }
 
     after(): execution(public static void main(..)) {
+        double fail_rate;
         
-        System.out.println(attempts);
-        System.out.println(failures);
+        Iterator failuresIter = failures.entrySet().iterator();
+        String csv_output = "Method, Failure Rate (Percent),\n";
+        while (failuresIter.hasNext()) {
+            Map.Entry entry = (Map.Entry) failuresIter.next();
+            String signature = (String) entry.getKey();
+            int fail_val = getIntFromObject(entry.getValue());
+            fail_rate = 0.0;
+            if (fail_val!= 0) {
+                int attempt_val = getIntFromObject(attempts.get(signature));
+                fail_rate = ((double) fail_val / (double) attempt_val)*100;
+            }
+            String formatted_string = String.format("%s, %f,\n", signature, fail_rate);
+            csv_output += formatted_string;
+            failuresIter.remove();
+        }
+        
+        try {
+            FileWriter node_out = new FileWriter("failures.csv", false);
+            PrintWriter node_print = new PrintWriter(node_out);
+            node_print.printf(csv_output);
+            node_print.close();
+            System.out.println("Failure information printed to failures.csv");
+        } catch(IOException e) {
+            System.out.println("IO error (failures.csv)");
+        }
+                
     };
 
 
