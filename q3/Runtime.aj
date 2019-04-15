@@ -1,67 +1,98 @@
 package q2;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Timer;
+
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
+
 import java.lang.Exception;
 
-public aspect CallGraph {
+
+public aspect Runtime {
     // Structure of nested hash maps for histogram
-    HashMap node_keys = new HashMap();
+    HashMap times = new HashMap();
     
-    String node_file = "q1-nodes.csv";
-    String edge_file = "q1-edges.csv";
     
     pointcut graph_point(): call(public int *(int)) && within(q2..*);
     //pointcut graph_point(): execution(public int *(int)) && within(q1..*);
 
     int around(int i): graph_point() && args(i) {
         try {
+            String joinpoint_name = thisJoinPoint.getSignature().toString();
+            long start = System.nanoTime();
             int result = proceed(i);
+            long end = System.nanoTime();
+            int time = (int) (end - start);
+            if(!times.containsKey(joinpoint_name)) {
+                ArrayList temp_list = new ArrayList();
+                temp_list.add(time);
+                times.put(joinpoint_name, temp_list);
+            }
+            else {
+                ArrayList temp_list = (ArrayList) times.get(joinpoint_name);
+                temp_list.add(time);
+                times.replace(joinpoint_name, temp_list);
+            }
             
             return result;
         } catch(Exception e) {
             return -1;
         }
     }
+
     after(): execution(public static void main(..)) {
-        System.out.println(node_keys);
-    };
-
-    //The histogram uses a structure of nested hashmaps, with the top layer containing a hashmap for each int value,
-    //Which then contains a hashmap for the amount of times the int has been used as a return value or argument
-    void addToMap(String signature, Integer i, String type) {
-        HashMap temp_map = (HashMap) node_keys.get(signature);
-        if(temp_map.containsKey(i)) {
-            HashMap map_value = (HashMap) temp_map.get(i);
-            Integer map_value_int = (Integer) map_value.get(type);
-            int temp_int = map_value_int.intValue() + 1;
-            //HashMap doesn't like non-object values so we have to convert to and from the Integer type
-            map_value.replace(type, Integer.valueOf(temp_int));
-            temp_map.replace(i, map_value);
-        } else {
-            HashMap map_value = new HashMap();
-            map_value.put("arg", Integer.valueOf(0));
-            map_value.put("ret", Integer.valueOf(0));
-            map_value.replace(type, Integer.valueOf(1));
-            temp_map.put(i, map_value);
-            
+        System.out.println(times.get("int q2.A.foo(int)"));
+        Iterator timesIter = times.entrySet().iterator();
+        String csv_output = "Method, Mean, St Dev,\n";
+        while(timesIter.hasNext()) {
+            Map.Entry entry = (Map.Entry) timesIter.next();
+            System.out.println(entry.getKey() + " " + entry.getValue());
+            double mean = averageTimes((ArrayList) entry.getValue());
+            double std_dev = stdDevTimes((ArrayList) entry.getValue(), mean);
+            String formatted_string = String.format("%s, %f, %f,\n", (String) entry.getKey(), mean, std_dev);
+            csv_output += formatted_string;
+            timesIter.remove();
         }
-        node_keys.replace(signature, temp_map);
-        
-    }
 
-    void writeCsv(String filename, ArrayList list) {
         try {
-            FileWriter node_out = new FileWriter(filename,false);
+            FileWriter node_out = new FileWriter("runtimes.csv",false);
             PrintWriter node_print = new PrintWriter(node_out);
-            for(int i = 0; i < list.size(); i++) {
-                node_print.println(list.get(i)+",");
-            }
+            node_print.printf(csv_output);
             node_print.close();
         } catch(IOException e) {
             System.out.println("IO error");        
         }
+        
+    };
+
+    double averageTimes(ArrayList time) {
+        if (time.size() == 1) {
+            
+            return ((Integer) time.get(0)).intValue();
+        }
+        double sum = 0;
+        for (int i = 0; i < time.size(); i++) {
+            int x = ((Integer) time.get(i)).intValue();
+            sum += x;
+        }
+        return (sum / time.size());
     }
+
+    double stdDevTimes(ArrayList time, double mean) {
+        if (time.size() == 1) {
+            return 0;
+        }
+        double sum = 0;
+        for (int i = 0; i < time.size(); i++) {
+            int x = ((Integer) time.get(i)).intValue();
+            double std_dev =(long) Math.pow((x - mean), 2);
+            sum += std_dev;
+        }
+        return Math.sqrt(sum / time.size());
+    }
+
 }

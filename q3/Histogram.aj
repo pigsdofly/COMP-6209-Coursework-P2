@@ -18,13 +18,12 @@ public aspect Histogram {
         try {
             int result = proceed(i);
                 
-            nodes.add(thisJoinPoint.getSignature());  
             String jp_str = thisJoinPoint.getSignature().toString();
             if(!node_keys.containsKey(jp_str)) {
                 node_keys.put(jp_str, new HashMap());
             } 
             
-            addToMap(jp_str, Integer.valueOf(i), "arg");
+            addToMap(jp_str, new Integer(i), "arg");
             addToMap(jp_str, Integer.valueOf(result), "ret");
             
             return result;
