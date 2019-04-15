@@ -35,8 +35,8 @@ public aspect Failure {
             
             int result = proceed(i);
                 
-            
             return result;
+            
         } catch(Exception e) {
             int fail_count = getIntFromObject(failures.get(joinpoint_name));
             failures.replace(joinpoint_name, fail_count + 1);

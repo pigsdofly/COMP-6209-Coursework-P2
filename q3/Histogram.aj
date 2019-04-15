@@ -14,31 +14,30 @@ public aspect Histogram {
     // Structure of nested hash maps for histogram
     HashMap node_keys = new HashMap();
     
-    
     pointcut graph_point(): call(public int *(int)) && within(q2..*);
-    //pointcut graph_point(): execution(public int *(int)) && within(q1..*);
 
-    int around(int i): graph_point() && args(i) {
+    after(int i) returning(int result): graph_point() && args(i) {
+    //int around(int i): graph_point() && args(i) {
+     /*   ///int result = 0;
+        boolean failed;
         try {
-            int result = proceed(i);
+            failed = false;
+      //      result = proceed(i);
                 
-            String jp_str = thisJoinPoint.getSignature().toString();
-            if(!node_keys.containsKey(jp_str)) {
-                node_keys.put(jp_str, new HashMap());
-            } 
-            
-            addToMap(jp_str, i, "arg");
-            addToMap(jp_str, result, "ret");
-            
-            return result;
         } catch(Exception e) {
-            return -1;
-        }
+            failed = true;
+            System.out.println("failure state");
+        }*/
+        String jp_str = thisJoinPoint.getSignature().toString();
+        if(!node_keys.containsKey(jp_str)) {
+            node_keys.put(jp_str, new HashMap());
+        } 
+        
+        addToMap(jp_str, i, "arg");
+        addToMap(jp_str, result, "ret");
     }
 
     after(): execution(public static void main(..)) {
-        System.out.println(node_keys);
-        
         Iterator hist_iter = node_keys.entrySet().iterator();
         while(hist_iter.hasNext()) {
             String csv_output = "Value, Times Input, Times Output, \n";
