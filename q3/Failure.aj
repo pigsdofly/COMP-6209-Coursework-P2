@@ -1,4 +1,4 @@
-package q2;
+package q3;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,8 +17,7 @@ public aspect Failure {
     HashMap attempts = new HashMap();
     HashMap failures = new HashMap();
     
-    pointcut graph_point(): call(public int *(int)) && within(q2..*);
-    //pointcut graph_point(): execution(public int *(int)) && within(q1..*);
+    pointcut graph_point(): call(public int *(int)) && within(q3..*);
 
     int around(int i): graph_point() && args(i) {
         String joinpoint_name = thisJoinPoint.getSignature().toString();
@@ -43,7 +42,7 @@ public aspect Failure {
             return -1;
         }
     }
-    
+
     int getIntFromObject(Object object) {
         return ((Integer) object).intValue();
     }

@@ -1,4 +1,4 @@
-package q2;
+package q3;
 public class A {
     public int foo(int a) {
         bar();

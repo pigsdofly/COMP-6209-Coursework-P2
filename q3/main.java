@@ -1,4 +1,4 @@
-package q2;
+package q3;
 import java.lang.Exception;
 
 class main {

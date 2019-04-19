@@ -1,4 +1,4 @@
-package q2;
+package q3;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -16,31 +16,26 @@ public aspect Runtime {
     HashMap times = new HashMap();
     
     
-    pointcut graph_point(): call(public int *(int)) && within(q2..*);
-    //pointcut graph_point(): execution(public int *(int)) && within(q1..*);
+    pointcut graph_point(): call(public int *(int)) && within(q3..*);
 
     int around(int i): graph_point() && args(i) {
-        try {
-            String joinpoint_name = thisJoinPoint.getSignature().toString();
-            long start = System.nanoTime();
-            int result = proceed(i);
-            long end = System.nanoTime();
-            int time = (int) (end - start);
-            if(!times.containsKey(joinpoint_name)) {
-                ArrayList temp_list = new ArrayList();
-                temp_list.add(time);
-                times.put(joinpoint_name, temp_list);
-            }
-            else {
-                ArrayList temp_list = (ArrayList) times.get(joinpoint_name);
-                temp_list.add(time);
-                times.replace(joinpoint_name, temp_list);
-            }
-            
-            return result;
-        } catch(Exception e) {
-            return -1;
+        String joinpoint_name = thisJoinPoint.getSignature().toString();
+        long start = System.nanoTime();
+        int result = proceed(i);
+        long end = System.nanoTime();
+        int time = (int) (end - start);
+        if(!times.containsKey(joinpoint_name)) {
+            ArrayList temp_list = new ArrayList();
+            temp_list.add(time);
+            times.put(joinpoint_name, temp_list);
         }
+        else {
+            ArrayList temp_list = (ArrayList) times.get(joinpoint_name);
+            temp_list.add(time);
+            times.replace(joinpoint_name, temp_list);
+        }
+        
+        return result;
     }
 
     after(): execution(public static void main(..)) {

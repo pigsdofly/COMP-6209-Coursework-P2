@@ -1,4 +1,4 @@
-package q2;
+package q3;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,20 +14,10 @@ public aspect Histogram {
     // Structure of nested hash maps for histogram
     HashMap node_keys = new HashMap();
     
-    pointcut graph_point(): call(public int *(int)) && within(q2..*);
+    pointcut graph_point(): call(public int *(int)) && within(q3..*);
+
 
     after(int i) returning(int result): graph_point() && args(i) {
-    //int around(int i): graph_point() && args(i) {
-     /*   ///int result = 0;
-        boolean failed;
-        try {
-            failed = false;
-      //      result = proceed(i);
-                
-        } catch(Exception e) {
-            failed = true;
-            System.out.println("failure state");
-        }*/
         String jp_str = thisJoinPoint.getSignature().toString();
         if(!node_keys.containsKey(jp_str)) {
             node_keys.put(jp_str, new HashMap());
