@@ -17,4 +17,5 @@ public class B {
     public int baz(int a) {
         return a + a;
     }
+    
 }

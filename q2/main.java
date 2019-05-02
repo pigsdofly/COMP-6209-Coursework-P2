@@ -7,7 +7,15 @@ class main {
         a.foo(3);
 
         B b = new B();
-        b.foo(1);
+        try {
+            b.foo(1);
+        } catch(Exception e) {
+            
+        }
+        try {
         b.foo(3);
+        } catch(Exception e) {
+        }
+
     }
 }
