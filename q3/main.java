@@ -9,8 +9,18 @@ class main {
         a.foo(2);
 
         B b = new B();
-        b.foo(1);
-        b.foo(3);
-        b.foo(1);
+        try {
+            b.foo(1);
+        } catch(Exception e) {
+        }
+        try {
+            b.foo(3);
+        } catch(Exception e) {
+        }
+          
+        try{
+            b.foo(1);
+        } catch(Exception e) {
+        }
     }
 }

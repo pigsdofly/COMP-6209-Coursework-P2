@@ -25,31 +25,34 @@ public aspect Q3 {
 
     int around(int i): graph_point() && args(i) {
         String joinpoint_name = thisJoinPoint.getSignature().toString();
-        try {
-            
-            if(!attempts.containsKey(joinpoint_name)) {
-                attempts.put(joinpoint_name, 1);
-                failures.put(joinpoint_name, 0);
-            }
-            else {
-                int attempt_count = getIntFromObject(attempts.get(joinpoint_name));
-                attempts.replace(joinpoint_name, attempt_count + 1);
-            }
-            
-            long start = System.nanoTime();
-            int result = proceed(i);
-            long end = System.nanoTime();
-            runtimeProfiling(joinpoint_name, start, end);
-            
-            histogramConstruction(joinpoint_name, i, result);
-                
-            return result;
-            
-        } catch(Exception e) {
-            int fail_count = getIntFromObject(failures.get(joinpoint_name));
-            failures.replace(joinpoint_name, fail_count + 1);
-            return -1;
+        
+        if(!attempts.containsKey(joinpoint_name)) {
+            attempts.put(joinpoint_name, 1);
+            failures.put(joinpoint_name, 0);
         }
+        else {
+            int attempt_count = getIntFromObject(attempts.get(joinpoint_name));
+            attempts.replace(joinpoint_name, attempt_count + 1);
+        }
+        
+        long start = System.nanoTime();
+        int result = proceed(i);
+        long end = System.nanoTime();
+        runtimeProfiling(joinpoint_name, start, end);
+        
+        histogramConstruction(joinpoint_name, i, result);
+            
+        return result;
+            
+    }
+    
+    //Adding failures split off into separate block from around block
+    after() throwing(Exception e): graph_point() && withincode(public int * (int)) {
+        System.out.println("Exception caught");
+        String joinpoint_name = thisJoinPoint.getSignature().toString();
+        int fail_count = getIntFromObject(failures.get(joinpoint_name));
+        failures.replace(joinpoint_name, fail_count + 1);
+        
     }
     
     void runtimeProfiling(String joinpoint_name, long start, long end) {
@@ -94,7 +97,8 @@ public aspect Q3 {
         node_keys.replace(signature, temp_map);
         
     }
-
+    
+    // All the csv making logic split off into separate functions
     after(): execution(public static void main(..)) {
         histogramCsv();
         failureCsv();
@@ -103,6 +107,7 @@ public aspect Q3 {
     
     void histogramCsv() {
         Iterator hist_iter = node_keys.entrySet().iterator();
+
         while(hist_iter.hasNext()) {
             String csv_output = "Value, Times Input, Times Output, \n";
             Map.Entry entry = (Map.Entry) hist_iter.next();
@@ -132,15 +137,19 @@ public aspect Q3 {
         
         Iterator failure_iter = failures.entrySet().iterator();
         String csv_output = "Method, Failure Rate (Percent),\n";
+
         while (failure_iter.hasNext()) {
             Map.Entry entry = (Map.Entry) failure_iter.next();
             String signature = (String) entry.getKey();
+
             int fail_val = getIntFromObject(entry.getValue());
             fail_rate = 0.0;
+
             if (fail_val!= 0) {
                 int attempt_val = getIntFromObject(attempts.get(signature));
                 fail_rate = ((double) fail_val / (double) attempt_val)*100;
             }
+
             String formatted_string = String.format("%s, %f,\n", signature, fail_rate);
             csv_output += formatted_string;
             failure_iter.remove();
@@ -152,6 +161,7 @@ public aspect Q3 {
     void runtimeCsv() {
         Iterator time_iter = times.entrySet().iterator();
         String csv_output = "Method, Mean (milliseconds), Std. Dev (milliseconds),\n";
+
         while(time_iter.hasNext()) {
             Map.Entry entry = (Map.Entry) time_iter.next();
 
@@ -159,7 +169,8 @@ public aspect Q3 {
             double std_dev = stdDevTimes((ArrayList) entry.getValue(), mean);
 
             // Converts from nanoseconds to milliseconds by dividing by 1000000
-            String formatted_string = String.format("%s, %f, %f,\n", (String) entry.getKey(), (mean / 1000000), (std_dev / 1000000));
+            String formatted_string = String.format("%s, %f, %f,\n", 
+                         (String) entry.getKey(), (mean / 1000000), (std_dev / 1000000));
             csv_output += formatted_string;
             time_iter.remove();
         }
