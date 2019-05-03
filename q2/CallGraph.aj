@@ -13,7 +13,6 @@ public aspect CallGraph {
     String edge_file = "q1-edges.csv";
     
     pointcut graph_point(): call(public int *(int)) && within(q2..*);
-    //pointcut graph_point(): execution(public int *(int)) && within(q1..*);
 
     before(): graph_point() {
         nodes.add(thisJoinPoint.getSignature());  
@@ -29,6 +28,7 @@ public aspect CallGraph {
 
     };
     
+    // after throwing block to avoid interfering with program logic
     after() throwing(Exception e): graph_point() && withincode(public int * (int)) {
         System.out.println("An exception occurred");
         edges.remove(edges.size()-1);
