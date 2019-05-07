@@ -1,4 +1,4 @@
-package q2;
+package q2.slp1n18;
 import java.lang.Exception;
 
 public class B {

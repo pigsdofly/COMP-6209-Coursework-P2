@@ -1,4 +1,4 @@
 CC=ajc
 
-CallGraph: CallGraph.aj
-	$(CC) -1.5 -d . CallGraph.aj main.java B.java A.java
+Q1: Q1.aj
+	$(CC) -1.5 -d . Q1.aj main.java B.java A.java

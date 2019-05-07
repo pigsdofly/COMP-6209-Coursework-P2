@@ -1,4 +1,5 @@
-package q3;
+//Compiled with -1.5 flag to force java version 1.5 (higher than default for ajc on my laptop)
+package q3.slp1n18;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -11,18 +12,20 @@ import java.io.IOException;
 import java.lang.Exception;
 
 public aspect Q3 {
-
-    HashMap times = new HashMap();
     
-    // Structure of nested hash maps for histogram
+    // Structure of nested hash maps for histogram (part 1 of question)
     HashMap node_keys = new HashMap();
     
-    // Hash maps for failures
+    // Hash maps for failures (part 2 of question)
     HashMap attempts = new HashMap();
     HashMap failures = new HashMap();
 
+    // Hashmap for runtimes (part 3 of question)
+    HashMap times = new HashMap();
+
     pointcut graph_point(): call(public int *(int)) && within(q3..*);
 
+    // Primary around block for getting run time information and histogram construction
     int around(int i): graph_point() && args(i) {
         String joinpoint_name = thisJoinPoint.getSignature().toString();
         
@@ -46,7 +49,7 @@ public aspect Q3 {
             
     }
     
-    //Adding failures split off into separate block from around block
+    //Adding failures split off into separate block from the primary around block, to avoid interfering with program logic
     after() throwing(Exception e): graph_point() && withincode(public int * (int)) {
         System.out.println("Exception caught");
         String joinpoint_name = thisJoinPoint.getSignature().toString();
@@ -55,6 +58,7 @@ public aspect Q3 {
         
     }
     
+    //Adds run times to times hashmap
     void runtimeProfiling(String joinpoint_name, long start, long end) {
         int time = (int) (end - start);
         if(!times.containsKey(joinpoint_name)) {
@@ -69,6 +73,7 @@ public aspect Q3 {
         }
     }
     
+    //Handles adding items to histogram hashmap
     void histogramConstruction(String joinpoint_name, int arg, int result) {
         if(!node_keys.containsKey(joinpoint_name)) {
             node_keys.put(joinpoint_name, new HashMap());
@@ -98,7 +103,7 @@ public aspect Q3 {
         
     }
     
-    // All the csv making logic split off into separate functions
+    // All the csv making logic split off into separate methods
     after(): execution(public static void main(..)) {
         histogramCsv();
         failureCsv();
@@ -178,6 +183,7 @@ public aspect Q3 {
         writeCsv("runtimes.csv", csv_output);
     }
 
+    // Gets mean of times, used for runtimes.csv
     double averageTimes(ArrayList time) {
         if (time.size() == 1) {
             
@@ -191,11 +197,7 @@ public aspect Q3 {
         return (sum / time.size());
     }
 
-    //Utility function to make retrieving int values from hashmaps and arraylists less of a hassle
-    int getIntFromObject(Object object) {
-        return ((Integer) object).intValue();
-    }
-
+    // Gets standard deviation of times for runtimes.csv
     double stdDevTimes(ArrayList time, double mean) {
         if (time.size() == 1) {
             return 0;
@@ -221,4 +223,8 @@ public aspect Q3 {
         }
     }
 
+    //Utility function to make retrieving int values from hashmaps and arraylists less of a hassle
+    int getIntFromObject(Object object) {
+        return ((Integer) object).intValue();
+    }
 }

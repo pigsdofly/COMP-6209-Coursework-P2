@@ -1,10 +1,11 @@
-package q1;
+//Compiled with -1.5 flag to force java version 1.5 (higher than default for ajc on my laptop)
+package q1.slp1n18;
 import java.util.ArrayList;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.IOException;
 
-public aspect CallGraph {
+public aspect Q1 {
     ArrayList nodes = new ArrayList();
     ArrayList edges = new ArrayList();
     
@@ -23,22 +24,22 @@ public aspect CallGraph {
         String edge_string = "";
             
         // Take last two nodes added to node list and put them in edge list
-        edge_string = edge_string.concat(nodes.get(nodes.size()-2).toString()).concat("->").concat(nodes.get(nodes.size()-1).toString());
+        edge_string = edge_string.concat(nodes.get(nodes.size()-2).toString()).concat(",").concat(nodes.get(nodes.size()-1).toString());
         edges.add(edge_string);
     };
     
 
     after(): execution(public static void main(..)) {
-        System.out.println(nodes);
-        System.out.println(edges);
-        writeCsv(node_file, nodes);
-        writeCsv(edge_file, edges);
+        writeCsv(node_file, nodes, "node,\n");
+        writeCsv(edge_file, edges, "source method, target method,\n");
+        System.out.println("Files q1-nodes.csv and q1-edges.csv written.");
     };
 
-    void writeCsv(String filename, ArrayList list) {
+    void writeCsv(String filename, ArrayList list, String init_string) {
         try {
             FileWriter node_out = new FileWriter(filename,false);
             PrintWriter node_print = new PrintWriter(node_out);
+            node_print.printf(init_string);
             for(int i = 0; i < list.size(); i++) {
                 node_print.println(list.get(i)+",");
             }

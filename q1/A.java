@@ -1,4 +1,4 @@
-package q1;
+package q1.slp1n18;
 public class A {
     public int foo(int a) {
         bar();

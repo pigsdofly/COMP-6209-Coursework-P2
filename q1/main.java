@@ -1,4 +1,4 @@
-package q1;
+package q1.slp1n18;
 
 class main {
     public static void main(String[] args) {
